@@ -10,7 +10,6 @@ class OrderService {
         const order = {
             idOrder: payload.idOrder,
             idConsumer: payload.idConsumer,
-            idStaff: payload.idStaff,
             orderDate: payload.orderDate,
             deliveryDate: payload.deliveryDate,
             deliveryAddress: payload.deliveryAddress,
@@ -31,7 +30,7 @@ class OrderService {
             { $set: {} },
             { returnDocument: "after", upsert: true }
         );
-        return result.value;
+        return result._id;
     }
 
     async find(filter) {

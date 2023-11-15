@@ -3,7 +3,7 @@ import MongoDB from "../configs/mongoDBConfig.js";
 
 class DetailOrderService {
     constructor() {
-        this.OrderDetail = (MongoDB.client).db().collection('order-detail');
+        this.OrderDetail = (MongoDB.client).db().collection('order_detail');
     }
 
     extractOrderDetailData(payload) {
@@ -21,13 +21,12 @@ class DetailOrderService {
 
     async create(payload) {
         const orderDetail = this.extractOrderDetailData(payload);
-
         const result = await this.OrderDetail.findOneAndUpdate(
             orderDetail,
             { $set: {} },
             { returnDocument: "after", upsert: true }
         );
-        return result.value;
+        return result;
     }
 
     async find(filter) {
@@ -37,7 +36,7 @@ class DetailOrderService {
 
     async findById(id) {
         return await this.OrderDetail.findOne({
-            idOrder: id,
+            idOrder: ObjectId.isValid(id) ? new ObjectId(id) : null,
         });
     }
 

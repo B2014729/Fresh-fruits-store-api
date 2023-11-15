@@ -24,7 +24,6 @@ class CartService {
             { $set: {} },
             { returnDocument: "after", upsert: true },
         )
-
         return result.value;
     }
 
@@ -55,7 +54,6 @@ class CartService {
         const filter = {
             idConsumer: ObjectId.isValid(id) ? new ObjectId(id) : null,
         };
-
         const dataUpdate = this.extractCartDataUpdate(payload);
 
         const result = await this.Cart.findOneAndUpdate(

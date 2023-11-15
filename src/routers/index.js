@@ -29,8 +29,11 @@ const initWebRoute = (app) => {
     router.route('/consumer-list')
         .get(ConsumerController.findAll);
 
-    router.route('/consumer/:filter')
+    router.route('/consumer-search/:filter')
         .get(ConsumerController.findOne)
+
+    router.route('/consumer/:filter')
+        .get(ConsumerController.findOneById)
         .put(ConsumerController.updateConsumer)
         .delete(ConsumerController.deleteConsumer);
 
@@ -62,10 +65,12 @@ const initWebRoute = (app) => {
         .get(OrderController.findDetailOrder);
 
     //_________________cart manager_______________________
-    router.route('/cart/:filter')
+    router.route('/cart/:idUser')
         .get(CartController.findOneById)
         .put(CartController.updateCart);
-    router.route('/cart-reset/:filter')
+    router.route('/cart-delete/:idUser')
+        .put(CartController.deleteProductInCart);
+    router.route('/cart-reset/:idUser')
         .get(CartController.resetCart);
 
     return app.use('/fresh-fruits-api', router);

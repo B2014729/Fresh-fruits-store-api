@@ -6,9 +6,8 @@ import jwt from 'jsonwebtoken';
 const encodeToken = (id) => {
     return jwt.sign({
         userId: id,
-    }, "privateKeyHastToken", { expiresIn: '1h' });
+    }, "privateKeyHastToken");
 }
-
 const decodeToken = (token) => {
     const data = jwt.verify(token, "privateKeyHastToken");
     return data.userId;
@@ -64,7 +63,6 @@ const createConsumer = async (request, response, next) => {
         return response.status(400).json(
             jsonStatus(400, 'Email cannot be empty!')
         );
-
     }
     try {
         const consumerService = new ConsumerService();
@@ -104,29 +102,48 @@ const findAll = async (request, response, next) => {
     );
 }
 
-//find with email, id, fullname
-const findOne = async (require, response, next) => {
-    let filter = require.params.filter;
+const findOneById = async (request, response, next) => {
     try {
+        let idConsumer = decodeToken(request.params.filter);
         const consumerService = new ConsumerService();
-        let document = await consumerService.findById(filter);
+        let document = await consumerService.findById(idConsumer);
         if (document) {
+            delete document._id;
+            delete document.password;
+
             return response.status(200).json(
                 jsonStatus(200, 'Find one with id successfuly!', document)
             );
+        }
+        if (!document) {
+            return response.status(404).json(
+                jsonStatus(404, 'Consumer not found!')
+            );
+        }
+    } catch (error) {
+        console.log(error);
+        return response.status(500).json(
+            jsonStatus(500, `Error retrieving consumer with id = ${request.params.filter} !`)
+        );
+    }
+}
+
+//find with email, fullname
+const findOne = async (request, response, next) => {
+    let filter = request.params.filter;
+    try {
+        const consumerService = new ConsumerService();
+        let document = await consumerService.findByName(filter);
+        if (document.length > 0) {
+            return response.status(200).json(
+                jsonStatus(200, 'Find one with fullname successfuly!', document)
+            );
         } else {
-            document = await consumerService.findByName(filter);
-            if (document.length > 0) {
+            document = await consumerService.find({ email: filter });
+            if (document) {
                 return response.status(200).json(
-                    jsonStatus(200, 'Find one with fullname successfuly!', document)
+                    jsonStatus(200, 'Find one with email successfuly!', document)
                 );
-            } else {
-                document = await consumerService.find({ email: filter });
-                if (document) {
-                    return response.status(200).json(
-                        jsonStatus(200, 'Find one with email successfuly!', document)
-                    );
-                }
             }
         }
         if (document.length == 0) {
@@ -137,49 +154,65 @@ const findOne = async (require, response, next) => {
     } catch (error) {
         console.log(error);
         return response.status(500).json(
-            jsonStatus(500, `Error retrieving consumer with id = ${require.params.filter} !`)
+            jsonStatus(500, `Error retrieving consumer with id = ${request.params.filter} !`)
         );
     }
 }
 
-const updateConsumer = async (require, response, next) => {
-    if (Object.keys(require.body).length === 0) {
-        return next(new ApiError(400, "Data to update cannot be empty!"));
+const updateConsumer = async (request, response, next) => {
+
+    const dataUpdate = {
+        fullname: request.body.fullname,
+        phone: request.body.phone,
+        address: request.body.address,
+    };
+
+    const idUser = decodeToken(request.params.filter);
+
+    if (Object.keys(request.body).length === 0) {
+        return response.status(400).json(
+            jsonStatus(400, `Data to update cannot be empty!`)
+        );
     }
 
     try {
         const consumerService = new ConsumerService();
-        const document = await consumerService.update(require.params.filter, require.body);
+        const document = await consumerService.update(idUser, dataUpdate);
         if (!document) {
-            return next(new ApiError(404, "consumer not found!"));
+            return response.status(404).json(
+                jsonStatus(404, `Consumer not found!`)
+            );
         }
-        return response.send({ message: "consumer was updated successfully!" });
+
+        return response.status(200).json(
+            jsonStatus(200, `Consumer was updated successfully!`)
+        );
     } catch (error) {
         console.log(error);
-        return next(
-            new ApiError(500, `Error retrieving consumer with id = ${require.params.filter} !`)
-        )
+        return response.status(500).json(
+            jsonStatus(500, `Error retrieving consumer with id = ${idUser} !`)
+        );
     }
 }
 
 
-const deleteConsumer = async (require, response, next) => {
+const deleteConsumer = async (request, response, next) => {
     try {
         const consumerService = new ConsumerService();
         const cartService = new CartService();
-        const consumer = await consumerService.findById(require.params.filter);
+        const consumer = await consumerService.findById(request.params.filter);
 
         if (!consumer) {
             return next(new ApiError(404, "Consumer not found!"));
         } else {
-            await consumerService.delete(require.params.filter);
+            await consumerService.delete(request.params.filter);
             await cartService.delete(consumer._id);
         }
         return response.send({ message: "Consumer was deleted successfully!" });
     } catch (error) {
         console.log(error);
         return next(
-            new ApiError(500, `Error retrieving consumer with id = ${require.params.filter} !`)
+            new ApiError(500, `Error retrieving consumer with id = ${request.params.filter} !`)
         )
     }
 }
@@ -188,6 +221,7 @@ export {
     createConsumer,
     findAll,
     findOne,
+    findOneById,
     updateConsumer,
     deleteConsumer,
     login
