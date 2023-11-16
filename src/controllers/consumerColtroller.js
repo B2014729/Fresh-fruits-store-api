@@ -128,12 +128,19 @@ const findOneById = async (request, response, next) => {
     }
 }
 
-//find with email, fullname
+//find with id, email, fullname
 const findOne = async (request, response, next) => {
     let filter = request.params.filter;
+    const consumerService = new ConsumerService();
     try {
-        const consumerService = new ConsumerService();
-        let document = await consumerService.findByName(filter);
+        let document = await consumerService.findById(filter);
+        if (!document) {
+            document = await consumerService.findByName(filter);
+        } else {
+            return response.status(200).json(
+                jsonStatus(200, 'Find one with id successfuly!', document)
+            );
+        }
         if (document.length > 0) {
             return response.status(200).json(
                 jsonStatus(200, 'Find one with fullname successfuly!', document)
@@ -203,17 +210,22 @@ const deleteConsumer = async (request, response, next) => {
         const consumer = await consumerService.findById(request.params.filter);
 
         if (!consumer) {
-            return next(new ApiError(404, "Consumer not found!"));
+            return response.status(404).json(
+                jsonStatus(404, "Consumer not found!")
+            );
         } else {
             await consumerService.delete(request.params.filter);
             await cartService.delete(consumer._id);
         }
-        return response.send({ message: "Consumer was deleted successfully!" });
+        return response.status(200).json(
+            jsonStatus(200, "Consumer was deleted successfully!")
+        );
+
     } catch (error) {
         console.log(error);
-        return next(
-            new ApiError(500, `Error retrieving consumer with id = ${request.params.filter} !`)
-        )
+        return response.status(500).json(
+            jsonStatus(500, `Error retrieving consumer with id = ${request.params.filter}!`)
+        );
     }
 }
 

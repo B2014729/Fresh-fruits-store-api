@@ -20,6 +20,9 @@ const initWebRoute = (app) => {
         .put(StaffController.updateStaff)
         .delete(StaffController.deleteStaff);
 
+    router.route('/staff-login')
+        .post(StaffController.login);
+
     //_________________consumer manager_______________________
     router.route('/consumer-login')
         .post(ConsumerController.login);

@@ -140,17 +140,22 @@ const deleteOrder = async (require, response, next) => {
         const order = await orderService.findById(require.params.filter);
 
         if (!order) {
-            return next(new ApiError(404, "Order not found!"));
+            return response.status(404).json(
+                jsonStatus(404, "Order not found!")
+            );
         } else {
             await orderService.delete(require.params.filter);
             await detailOrderService.delete(order.idOrder);
         }
-        return response.send({ message: "Order was deleted successfully!" });
+        return response.status(200).json(
+            jsonStatus(200, "Order was deleted successfully!")
+        );
+
     } catch (error) {
         console.log(error);
-        return next(
-            new ApiError(500, `Error retrieving order with id = ${require.params.filter}!`)
-        )
+        return response.status(500).json(
+            jsonStatus(500, `Error retrieving order with id = ${require.params.filter}!`)
+        );
     }
 }
 

@@ -17,10 +17,10 @@ const decodeToken = (token) => {
 
 const findOneById = async (request, response, next) => {
     const filter = request.params.idUser;
-    const isUser = decodeToken(filter);
+    const idUser = decodeToken(filter);
     try {
         const cartService = new CartService();
-        let document = await cartService.findById(isUser);
+        let document = await cartService.findById(idUser);
 
         if (document.length == 0) {
             return response.status(404).json(
