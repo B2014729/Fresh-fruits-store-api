@@ -64,8 +64,11 @@ const initWebRoute = (app) => {
     router.route('/order/:filter')
         .get(OrderController.findOneById)
         .delete(OrderController.deleteOrder)
+        .put(OrderController.update)
     router.route('/order-detail/:filter')
         .get(OrderController.findDetailOrder);
+    router.route('/order-list-with-consumer/:token')
+        .get(OrderController.findAllWithIdConsumer)
 
     //_________________cart manager_______________________
     router.route('/cart/:idUser')

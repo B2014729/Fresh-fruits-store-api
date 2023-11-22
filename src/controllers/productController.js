@@ -10,14 +10,14 @@ const jsonStatus = (statusCode, message, data = []) => {
 }
 
 const createProduct = async (request, response, next) => {
-    if (!request.body.name) {
+    if (!request.body.data.name) {
         return response.status(400).json(
             jsonStatus(400, 'Name cannot be empty!')
         )
     }
     try {
         const productService = new ProductService();
-        const document = await productService.create(request.body);
+        const document = await productService.create(request.body.data);
         return response.status(200).json(
             jsonStatus(200, 'Create product successfully!')
         )
@@ -117,7 +117,7 @@ const updateProduct = async (require, response, next) => {
 
     try {
         const productService = new ProductService();
-        const document = await productService.update(require.params.filter, require.body);
+        const document = await productService.update(require.params.filter, require.body.data);
         if (!document) {
             return response.status(404).json(
                 jsonStatus(404, "Product not found!")

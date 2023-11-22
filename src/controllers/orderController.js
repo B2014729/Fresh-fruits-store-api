@@ -1,9 +1,8 @@
-import ApiError from '../api-error.js';
 import jwt from 'jsonwebtoken';
 
 import OrderService from '../services/order.service.js';
 import DetailOrderService from '../services/detailOrder.service.js';
-import { request } from 'express';
+
 
 const decodeToken = (token) => {
     const data = jwt.verify(token, "privateKeyHastToken");
@@ -132,6 +131,33 @@ const findDetailOrder = async (request, response, next) => {
     }
 }
 
+const findAllWithIdConsumer = async (request, response) => {
+    let documents = [];
+    try {
+        const token = request.params.token;
+        const idConsumer = decodeToken(token);
+        const filter = { idConsumer: idConsumer };
+
+        const orderService = new OrderService();
+        documents = await orderService.find(filter);
+        if (!documents) {
+            return response.status(404).json(
+                jsonStatus(404, "Order not found")
+            );
+        }
+
+        return response.status(200).json(
+            jsonStatus(200, "Find order successfully!", documents)
+        );
+    } catch (error) {
+        console.log(error);
+        return response.status(500).json(
+            jsonStatus(500, `Error retrieving order with id = ${request.params.filter}!`)
+        );
+    }
+
+}
+
 const deleteOrder = async (require, response, next) => {
     try {
         const orderService = new OrderService();
@@ -159,10 +185,29 @@ const deleteOrder = async (require, response, next) => {
     }
 }
 
+const update = async (request, response, next) => {
+    let idOrder = request.params.filter;
+
+    try {
+        const orderService = new OrderService();
+        await orderService.update(idOrder, { status: 'Đơn hàng đang được chuẩn bị' })
+        return response.status(200).json(
+            jsonStatus(200, "Order was deleted successfully!")
+        );
+    } catch (error) {
+        console.log(error);
+        return response.status(500).json(
+            jsonStatus(500, `Error retrieving order with id = ${require.params.filter}!`)
+        );
+    }
+}
+
 export {
     createOrder,
     findAll,
     findOneById,
     findDetailOrder,
-    deleteOrder
+    deleteOrder,
+    findAllWithIdConsumer,
+    update,
 }
